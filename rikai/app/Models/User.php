@@ -16,10 +16,15 @@ class User extends Authenticatable
      *
      * @var array
      */
+    protected $table = 'users';
+    protected $primaryKey='id';
+    public $timestamps = true;
     protected $fillable = [
         'name',
         'email',
         'password',
+        'avatar',
+        'role'
     ];
 
     /**
@@ -40,4 +45,17 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
     ];
+
+    public function userCourse()
+    {
+        return $this->hasMany(UserCourse::class,'user_id');
+    }
+    public function userSubject()
+    {
+        return $this->hasMany(UserSubject::class,'user_id');
+    }
+    public function userTask()
+    {
+        return $this->hasMany(UserTask::class,'user_id');
+    }
 }
