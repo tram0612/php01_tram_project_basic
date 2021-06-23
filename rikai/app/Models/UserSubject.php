@@ -27,4 +27,7 @@ class UserSubject extends Model
     {
         return $this->belongsTo(Subject::class,'subject_id');
     }
+    public static function findSubjectForUser($courseId,$userId){
+        return UserSubject::where('course_id',$courseId)->where('user_id',$userId)->with('subject')->get()->toArray();
+    }
 }

@@ -15,11 +15,11 @@ class CreateTableUserCourseTable extends Migration
     {
         Schema::create('user_course', function (Blueprint $table) {
             $table->id();
-            $table->integer('course_id');
-            $table->integer('user_id');
+            $table->unsignedBigInteger('course_id');
+            $table->unsignedBigInteger('user_id');
             $table->boolean('status')->nullable();//0:start 1:finish
-            $table->unique('course_id', 'user_id');
-            $table->text('report');
+            $table->foreign('course_id')->references('id')->on('course')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
             
         });
     }
