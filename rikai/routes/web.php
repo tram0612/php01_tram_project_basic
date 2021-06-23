@@ -1,7 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\LoginController;
+use App\Http\Controllers\Server\UserController as UserController1;
+use App\Http\Controllers\Client\UserController as UserController2;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -12,14 +14,20 @@ use Illuminate\Support\Facades\Route;
 | contains the "web" middleware group. Now create something great!
 |
 */
+Route::pattern('user','([0-9]+)');
 
-Route::get('/', function () {
-    return view('index');
+Route::get('/signin', [LoginController::class, 'getLogin'])->name('signin');
+Route::post('/signin', [LoginController::class, 'postLogin'])->name('signin');
+Route::get('/signout', [LoginController::class, 'logout'])->name('signout');
+Route::prefix('server')->name('server.')->group(function(){
+ Route::middleware(['admin'])->group(function () {
+ 	Route::get('/', function () {
+			return view('server.index');
+		})->name('index');
+		Route::resource('user', UserController1::class)->except(['index','edit']);
+		Route::get('/trainee', [UserController1::class, 'trainee'])->name('user.trainee');
+		Route::get('/supervisor', [UserController1::class, 'supervisor'])->name('user.supervisor');
+	});
+ 
 });
-Route::get('/student', function () {
-    return view('student');
-});
 
-Auth::routes();
-
-Route::get('/home', [App\Http\Controllers\HomeController::class, 'index'])->name('home');
