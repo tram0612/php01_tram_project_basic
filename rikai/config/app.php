@@ -227,7 +227,9 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
-
+        'UserRole' => App\Enums\UserRole::class,
+        'Finish' => App\Enums\Finish::class,
+        'Status' => App\Enums\Status::class,
     ],
 
 ];

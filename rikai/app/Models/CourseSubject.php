@@ -24,4 +24,24 @@ class CourseSubject extends Model
     {
         return $this->belongsTo(Subject::class,'subject_id');
     }
+    public static function updateStatus($courseId,$subjectId){
+        $subject = CourseSubject::where('course_id',$courseId)->where('subject_id',$subjectId)->first();
+        if($subject->status==Status::Start){
+            $subject->status = Status::Finish;
+            
+        }
+        else{
+           $subject->status = Status::Start; 
+        }
+        $subject->save();
+        return $subject;
+    }
+    public static function sortSubject($req){
+        $arr = explode(',', $req->ids);
+        for($i=0; $i<count($arr); $i++){
+            CourseSubject::where('course_id',$req->courseId)
+                        ->where('subject_id',$arr[$i])
+                        ->update(['position'=>$i]);
+        }
+    }
 }
