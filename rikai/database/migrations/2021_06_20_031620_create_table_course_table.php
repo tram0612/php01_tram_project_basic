@@ -17,10 +17,11 @@ class CreateTableCourseTable extends Migration
             $table->id();
             $table->string('name', 50)->unique();
             $table->string('img', 200);
-            $table->boolean('finish')->nullable();//0:chua 1:roi
+            $table->boolean('finish')->nullable()->default(0);//0:chua 1:roi
             $table->text('detail')->nullable();
             $table->text('instruction')->nullable();
             $table->timestamps();
+            $table->softDeletes(); // add
         });
     }
 

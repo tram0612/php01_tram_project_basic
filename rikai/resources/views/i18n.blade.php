@@ -1,4 +1,4 @@
 <script>
-    window.translations = {!! Cache::get('translations') !!};
+    window.translations = {!! $translation !!};
 </script>
 <script src="{{ asset('templates/dist/js/trans.js') }}"></script>

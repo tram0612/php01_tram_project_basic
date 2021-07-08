@@ -1,4 +1,4 @@
 
 $('#reservationdate').datetimepicker({
-        format: 'YYYY-MM-DD'
+        format: 'DD-MM-YYYY'
     });

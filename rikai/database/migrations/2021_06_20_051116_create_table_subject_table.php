@@ -17,9 +17,9 @@ class CreateTableSubjectTable extends Migration
             $table->id();
             $table->string('name', 50)->unique();
             $table->string('img', 200);
-            $table->boolean('finish')->nullable();//0:chua 1:roi
             $table->text('detail')->nullable();
             $table->timestamps();
+            $table->softDeletes(); // add
         });
     }
 

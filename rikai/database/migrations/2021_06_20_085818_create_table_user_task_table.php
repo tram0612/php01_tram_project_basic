@@ -15,12 +15,15 @@ class CreateTableUserTaskTable extends Migration
     {
         Schema::create('user_task', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id');
-            $table->integer('task_id');
-            $table->boolean('status');//0:chua 1:xong
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('task_id');
+            $table->boolean('status')->default(0);//0:chua 1:xong
             $table->text('comment')->nullable();
+            $table->text('duration')->nullable();
+            $table->softDeletes(); // add
             $table->timestamps();
-            $table->unique('user_id', 'task_id');
+            $table->foreign('user_id')->references('id')->on('users');
+            $table->foreign('task_id')->references('id')->on('task');
         });
     }
 

@@ -11,6 +11,6 @@ use BenSampo\Enum\Enum;
  */
 final class Status extends Enum
 {
-    const  Finish =   0;
-    const  Start =   1;
+    const  Start =   0;
+    const  Finish =   1;
 }

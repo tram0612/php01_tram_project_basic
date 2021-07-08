@@ -1,39 +1,42 @@
-<?php
+<?php 
 
-namespace App\Providers;
+namespace App\Providers; 
 
-use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Facades\App;
 use Illuminate\Support\Facades\File; 
-use Illuminate\Support\Facades\Cache;
-class TranslationServiceProvider extends ServiceProvider
-{
-    /**
-     * Register services.
-     *
+use Illuminate\Support\ServiceProvider; 
+use Illuminate\Support\Facades\View;
 
-     * @return void
-     */
-    protected $langPath;  
+class TranslationServiceProvider extends ServiceProvider 
+{ 
+    /** 
+     * The path to the current lang files. 
+     * 
+     * @var string 
+     */ 
+    protected $langPath; 
 
-    public function __construct()
-    {
-        $this->langPath = resource_path('lang/'.App::getLocale());
+    /** 
+     * Create a new service provider instance. 
+     * 
+     * @return void 
+     */ 
+    public function __construct() 
+    { 
+        $this->langPath = resource_path('lang/' . App::getLocale());
     }
 
     /**
-     * Bootstrap services.
+     * Bootstrap the application services.
      *
      * @return void
      */
     public function boot()
     {
-        Cache::rememberForever('translations', function () {
-            return collect(File::allFiles($this->langPath))->flatMap(function ($file) {
+        View::share('translation', collect(File::allFiles($this->langPath))->flatMap(function ($file) {
                 return [
                     ($translation = $file->getBasename('.php')) => trans($translation),
                 ];
-            })->toJson();
-        });
+            })->toJson());
     }
 }

@@ -2,10 +2,7 @@
 @section('title')
 {{__('views.task')}}
 @endsection
-@section('ui')
-<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css">
 
-@endsection
 
 @section('content')
  <!-- Content Wrapper. Contains page content -->
@@ -19,7 +16,12 @@
           <div class="alert alert-success">
             {{session('msg')}}
           </div>
-          @endif 
+          @endif
+          @if (session('fail'))
+          <div class="alert alert-danger">
+            {{session('fail')}}
+          </div>
+         @endif  
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">

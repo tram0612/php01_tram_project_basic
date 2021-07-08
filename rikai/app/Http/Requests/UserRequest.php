@@ -42,8 +42,6 @@ class UserRequest extends FormRequest
                     'email' => 'required|email|unique:users,email,'.Request()->user,
                     'avatar' =>  'image|mimes:jpeg,jpg,bmp,png,gif|max:2048',
                     'password' => 'nullable|min:8|max:20',
-                    'role'=>'required'
-                                       
                 ];
             }
             default: break;

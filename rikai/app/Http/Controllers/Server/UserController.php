@@ -3,12 +3,11 @@
 namespace App\Http\Controllers\Server;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Http\Requests\UserRequest;
 use App\Http\Traits\UploadFile;
 use App\Enums\UserRole;
+use App\Jobs\SendEmailJob;
 
 class UserController extends Controller
 {
@@ -31,15 +30,7 @@ class UserController extends Controller
     {
         return view('server.user.add');
     }
-    public function findId($id){
-        $user = User::find($id);
-        if(blank($user)){
-            return redirect()->back()->with('msg', __('messages.oop!'));
-        }else{
-            return $user;
-        }
-    }
-
+    
     /**
      * Store a newly created resource in storage.
      *
@@ -55,7 +46,8 @@ class UserController extends Controller
             $image=$req->file('avatar');
             $temp['avatar'] = $this->upload($image);
         }
-        $insert = User::create($temp);
+        $insert = User::create($temp)->toArray();
+        dispatch(new SendEmailJob($insert));
 
         if(isset($insert)){
             return back()->with('msg', __('messages.add.success'));
@@ -74,7 +66,7 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = $this->findId($id);
+        $user = $this->loadUserWithTrash($id);
         return view('server.user.profile',compact('user','id')); 
     }
 
@@ -98,7 +90,7 @@ class UserController extends Controller
      */
     public function update(UserRequest $req, $id)
     {
-        $user = $this->findId($id);
+        $user = $this->loadUserWithTrash($id);
         $temp = $req->except(['_token']);
         if($req->password!=null){
             $temp['password'] = bcrypt($req->password);
@@ -122,7 +114,7 @@ class UserController extends Controller
         if($update){
             return back()->with('msg', __('messages.update.success'));
         }else{
-            return back()->with('msg', __('messages.update.fail'));
+            return back()->with('fail', __('messages.update.fail'));
         }
     }
 
@@ -134,10 +126,7 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $user = $this->findId($id);
-        if(blank($user)){
-            return back()->with('msg', __('messages.oop!'));
-        }
+        $user = $this->loadUserWithTrash($id);
         if($user->avatar!=null){
             $img = $user->avatar;
             $path = public_path('upload/' . $img);
@@ -145,18 +134,24 @@ class UserController extends Controller
                 unlink(public_path('upload/' . $img));
             }
         }
+        $this->checkDataInTransaction($user,__FUNCTION__);
         
-        $user->delete();
-        return redirect()->back()->with('msg',__('messages.delete.success'));
-
+    }
+    public function softDelete($id){
+        $user = $this->loadUserWithTrash($id);
+        $this->checkDataInTransaction($user,__FUNCTION__);
+    }
+    public function restore($id){
+        $user = $this->loadUserWithTrash($id);
+        $this->checkDataInTransaction($user,__FUNCTION__);
     }
 
     public function trainee(){
-        $users = User::where('role',UserRole::Trainee)->paginate(5);
+        $users = User::withTrashed()->where('role',UserRole::Trainee)->paginate(5);
         return view('server.user.table',compact('users'));
     }
     public function supervisor(){
-        $users = User::where('role',UserRole::Supervisor)->paginate(5);
+        $users = User::withTrashed()->where('role',UserRole::Supervisor)->paginate(5);
         return view('server.user.table',compact('users'));
     }
 

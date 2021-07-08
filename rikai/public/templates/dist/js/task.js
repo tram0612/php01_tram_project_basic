@@ -1,4 +1,8 @@
 $(document).ready(function(){
+  $.ajaxSetup({
+      headers:
+      {'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content')}
+  });
   $("#AddTask").submit(function(e) {
     e.preventDefault()
     var route = $(this).attr('action')
@@ -44,7 +48,6 @@ $(document).ready(function(){
             ids +=','+id;
           }
         })
-        //alert(ids);
         $.ajax({
               type:'POST',
               url:'/server/subject/sortTask',

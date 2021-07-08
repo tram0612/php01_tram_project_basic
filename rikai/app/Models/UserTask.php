@@ -4,9 +4,10 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
-
+use Illuminate\Database\Eloquent\SoftDeletes;
 class UserTask extends Model
 {
+    use SoftDeletes;
     protected $table = 'user_task';
     protected $primaryKey='id';
    	public $timestamps = true;
@@ -14,15 +15,12 @@ class UserTask extends Model
         'user_id',
         'task_id',
         'status',
-        'comment'
+        'comment',
+        'duration'
     ];
     public function task()
     {
         return $this->belongsTo(Task::class,'task_id');
-    }
-    public function userSubject()
-    {
-        return $this->belongsTo(UserSubject::class,'subject_id');
     }
     public function user()
     {

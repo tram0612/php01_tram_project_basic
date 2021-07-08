@@ -231,6 +231,7 @@ return [
         'UserRole' => App\Enums\UserRole::class,
         'Finish' => App\Enums\Finish::class,
         'Status' => App\Enums\Status::class,
+        'Search' => App\Enums\Search::class,
     ],
 
 ];

@@ -15,11 +15,13 @@ class CreateTableUserSubjectTable extends Migration
     {
         Schema::create('user_subject', function (Blueprint $table) {
             $table->id();
-            $table->integer('user_id');
-            $table->integer('course_id');
-            $table->integer('subject_id');
-            $table->boolean('status')->nullable();//0:start 1:finish
-            $table->unique('course_id', 'subject_id');
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('cs_id');
+            $table->boolean('status')->nullable()->default(0);//0:start 1:finish
+            $table->timestamps();
+            $table->softDeletes(); // add
+            $table->foreign('cs_id')->references('id')->on('course_subject');
+            
         });
     }
 

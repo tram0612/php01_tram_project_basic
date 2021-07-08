@@ -17,10 +17,11 @@ class CreateTableUserCourseTable extends Migration
             $table->id();
             $table->unsignedBigInteger('course_id');
             $table->unsignedBigInteger('user_id');
-            $table->boolean('status')->nullable();//0:start 1:finish
-            $table->foreign('course_id')->references('id')->on('course')->onDelete('cascade');
-            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
-            
+            $table->boolean('status')->nullable()->default(0);//0:start 1:finish
+            $table->softDeletes(); // add
+            $table->timestamps();
+            $table->foreign('course_id')->references('id')->on('course');
+            $table->foreign('user_id')->references('id')->on('users');
         });
     }
 

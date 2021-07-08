@@ -11,25 +11,7 @@
  <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-          @if (session('msg'))
-          <div class="alert alert-success">
-            {{session('msg')}}
-          </div>
-          @endif 
-          </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">General Form</li>
-            </ol>
-          </div>
-        </div>
-      </div><!-- /.container-fluid -->
-    </section>
+    @include('server.subject.content-header')
 
     <!-- Main content -->
     <section class="content">
@@ -63,11 +45,11 @@
                       <td><a href=""> {{$task->name}}</a></td>
                       <td> {{$task->detail}}</td>
                       <td>
-                        <button type="button" class="btn btn-block bg-gradient-info btn-xs"><a href="{{route('server.subject.task.show',[$subject->id,$task->id])}}">{{__('views.edit')}}</a></button>
+                        <button type="button" class="btn btn-block bg-gradient-info btn-xs"><a style="color: black;" href="{{route('server.subject.task.show',[$subject->id,$task->id])}}">{{__('views.edit')}}</a></button>
                         <form method="post" action="{{route('server.subject.task.destroy',[$subject->id,$task->id])}}">
                           @csrf
                           <input type="hidden" name="_method" value="DELETE">
-                          <button type="submit" class="btn btn-block bg-gradient-danger btn-xs">
+                          <button type="submit" onclick="return confirm(trans('views.hardDeleteConfirm'))" class="btn btn-block bg-gradient-danger btn-xs">
                             <i data-feather="delete">{{__('views.delete')}}</i>
                           </button>
                         </form>
@@ -82,7 +64,7 @@
               <!-- /.card-body -->
               
               <!-- form start -->
-              <form id="AddTask" subjectId="{{$subject->id}}" method="post" action="{{route('server.subject.task.store',[$subject->id])}}" enctype="multipart/form-data">
+              <form subjectId="{{$subject->id}}" method="post" action="{{route('server.subject.task.store',[$subject->id])}}" enctype="multipart/form-data">
                 @csrf
                 <div class="card-body">
                   <div class="form-group">

@@ -6,26 +6,7 @@
  <!-- Content Wrapper. Contains page content -->
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
-    <section class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-          @if (session('msg'))
-          <div class="alert alert-success">
-            {{session('msg')}}
-          </div>
-      @endif 
-          </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">General Form</li>
-            </ol>
-          </div>
-        </div>
-      </div><!-- /.container-fluid -->
-    </section>
-
+    @include('server.course.content-header')
     <!-- Main content -->
     <section class="content">
       <div class="container-fluid">
@@ -44,8 +25,11 @@
                 @method('PATCH')
                 @csrf
                 <div class="card-body">
+                <div class="form-group">
+                <small class="text-danger">* : {{__('views.required')}}</small>
+                </div>
                   <div class="form-group">
-                    <label for="exampleInputEmail1">{{__('views.name')}}</label>
+                    <label for="exampleInputEmail1">{{__('views.name')}}<span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control" id="exampleInputEmail1" placeholder="Enter name"
                     value="{{$course->name}}">
                   </div>
@@ -53,14 +37,14 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                   @enderror
                   <div class="form-group">
-                    <label for="exampleInputEmail1">{{__('views.instruction')}}</label>
+                    <label for="exampleInputEmail1">{{__('views.instruction')}}<span class="text-danger">*</span></label>
                     <textarea name="instruction" class="form-control" rows="5" placeholder="Enter ...">{!!$course->instruction!!}</textarea>
                   </div>
                   @error('instruction')
                     <div class="alert alert-danger">{{ $message }}</div>
                   @enderror
                   <div class="form-group">
-                    <label for="exampleInputPassword1">{{__('views.detail')}}</label>
+                    <label for="exampleInputPassword1">{{__('views.detail')}}<span class="text-danger">*</span></label>
                     <textarea name="detail" class="form-control" rows="5" placeholder="Enter ...">{!!$course->detail!!}</textarea>
                   </div>
                    @error('detail')

@@ -18,7 +18,11 @@ class CreateTableTaskTable extends Migration
             $table->string('name',200);
             $table->unsignedBigInteger('subject_id');
             $table->text('detail')->nullable();
-            $table->foreign('subject_id')->references('id')->on('subject')->onDelete('cascade');
+            $table->smallInteger('position')->nullable();
+            $table->timestamps();
+            $table->softDeletes(); // add
+            $table->foreign('subject_id')->references('id')->on('subject');
+           
         });
     }
 

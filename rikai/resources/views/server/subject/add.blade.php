@@ -14,7 +14,12 @@
           <div class="alert alert-success">
             {{session('msg')}}
           </div>
-      @endif 
+      @endif
+      @if (session('fail'))
+          <div class="alert alert-danger">
+            {{session('fail')}}
+          </div>
+      @endif  
           </div>
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -44,7 +49,11 @@
                 @csrf
                 <div class="card-body">
                   <div class="form-group">
-                    <label for="exampleInputEmail1">{{__('views.name')}}</label>
+                  <small class="text-danger">* : {{__('views.required')}}</small>
+                 
+                  </div>
+                  <div class="form-group">
+                    <label for="exampleInputEmail1">{{__('views.name')}}<span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control" id="exampleInputEmail1" placeholder="Enter name"
                     value="{{old('name')}}">
                   </div>
@@ -52,14 +61,14 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                   @enderror
                   <div class="form-group">
-                    <label for="exampleInputPassword1">{{__('views.detail')}}</label>
+                    <label for="exampleInputPassword1">{{__('views.detail')}}<span class="text-danger">*</span></label>
                     <textarea name="detail" class="form-control" rows="5" placeholder="Enter ..."></textarea>
                   </div>
                    @error('detail')
                     <div class="alert alert-danger">{{ $message }}</div>
                   @enderror
                   <div class="form-group">
-                    <label for="exampleInputFile">{{__('views.image')}}</label>
+                    <label for="exampleInputFile">{{__('views.image')}}<span class="text-danger">*</span></label>
                     <div class="input-group">
                       <div class="custom-file">
                         <input type="file" name="img" class="custom-file-input" id="exampleInputFile">

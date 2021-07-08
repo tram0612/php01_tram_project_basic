@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Server;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Subject;
-use App\Models\Course;
 use App\Models\User;
 use App\Enums\UserRole;
 use Illuminate\Support\Facades\URL;
 use App\Enums\Status;
-use App\Models\UserSubject;
+use App\Http\Requests\UserCourseRequest;
+use App\Models\UserCourse;
+use Illuminate\Support\Facades\DB;
 
 class UserCourseController extends Controller
 {
@@ -19,17 +19,10 @@ class UserCourseController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function findId($id){
-        $course = Course::find($id);
-        if(blank($course)){
-            return redirect()->back()->with('msg', __('messages.oop!'));
-        }else{
-            return $course;
-        }
-    }
+    
     public function index($courseId)
     {
-        $course = $this->findId($courseId);
+        $course = $this->loadCourseWithTrash($courseId);
         $url = URL::current();
         $role=0;
         if (strpos($url,'traniee') !== false) {
@@ -43,7 +36,6 @@ class UserCourseController extends Controller
         $userOfCourse=$course->user()->where('role',$role)->get();
         $users = User::where('role',$role)->get()->toArray();
         foreach($userOfCourse as $userCourse) {
-            
             foreach ($users as $key=> $user){
                 if($userCourse->id==$user['id']){
                     unset($users[$key]);
@@ -54,37 +46,48 @@ class UserCourseController extends Controller
         return view('server.course.user.index',compact('course','users','userOfCourse'));
         
     }
-    public function addUser(Request $req)
-    {
-        $course = $this->findId($req->courseId);
-        $user = User::find($req->userId);
-        if( blank($course) || blank($user) ){
-            return response()->json(['success' => false]);
+    public function store(UserCourseRequest $req,$courseId)
+    {  
+        $course = $this->loadCourseWithTrash($courseId);
+        $userIds = $req->input('userIds');
+        foreach($userIds as $key=>$userId){
+            $user = $this->loadUser($userId);
+            DB::beginTransaction(); 
+            try {
+                UserCourse::create([
+                    'user_id' => $userId,
+                    'course_id' => $courseId,
+                    'status' => Status::Start
+                ]);
+                DB::commit();
+            } catch (\Exception $e) {
+                DB::rollBack();
+                abort(back()->with('fail', __('messages.add.fail')));
+            }
         }
-        
-        $course->user()->attach($req->userId);
-        $subjects = $course->subject()->get();
-        foreach($subjects as $subject){
-            UserSubject::create([
-                'user_id' => $req->userId,
-                'course_id' => $req->courseId,
-                'subject_id' => $subject->id,
-                'status'    => Status::Start,
-            ]);
+        return back()->with('msg', __('messages.add.success'));
+    }
+    public function loadUserCourse($courseId,$userId){
+        $userCourse = UserCourse::withTrashed()->loadUserCourse($courseId,$userId)->first();
+        if(blank($userCourse)){
+            abort(redirect()->back()->with('fail', __('messages.oop!')));
+        }else{
+            return $userCourse;
         }
-       
-       
-        $html = view('server.course.user.userAjax')->with(compact('user','req'))->render(); 
-        return response()->json(['success' => true, 'html' => $html]);
+
     }
     public function destroy($courseId,$userId)
-    {
-        $course = $this->findId($courseId);
-        $del=$course->user()->detach($userId);
-        if($del){
-            return back()->with('msg', __('messages.delete.success'));
-        }else{
-            return back()->with('msg', __('messages.delete.fail'));
-        }
+    {   
+        $userCourse = $this->loadUserCourse($courseId,$userId);
+        $this->checkDataInTransaction($userCourse,__FUNCTION__);
     }
+    public function softDelete($courseId,$userId){
+        $userCourse = $this->loadUserCourse($courseId,$userId);
+        $this->checkDataInTransaction($userCourse,__FUNCTION__);
+    }
+    public function restore($courseId,$userId){
+        $userCourse = $this->loadUserCourse($courseId,$userId);
+        $this->checkDataInTransaction($userCourse,__FUNCTION__);
+    }
+    
 }

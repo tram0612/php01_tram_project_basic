@@ -5,9 +5,11 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Course;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class Subject extends Model
 {
-    use HasFactory;
+    use HasFactory,SoftDeletes;
     protected $table = 'subject';
     protected $primaryKey='id';
    	public $timestamps = true;
@@ -37,11 +39,6 @@ class Subject extends Model
     {
         return $this->hasManyThrough(UserTask::class,Task::class,'subject_id','task_id');
     }
-    public function activity()
-    {
-        return $this->morphMany(Activity::class, 'actionable');
-    }
-    public static function index(){
-        return Subject::select(['id', 'name','img','finish'])->paginate(5);
-    }
+    
+    
 }

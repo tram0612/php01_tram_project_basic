@@ -17,11 +17,15 @@ class CreateTableCourseSubjectTable extends Migration
             $table->id();
             $table->unsignedBigInteger('course_id');
             $table->unsignedBigInteger('subject_id');
-            $table->boolean('status')->nullable();//0:start 1:finish
+            $table->boolean('status')->nullable()->default(0);//0:start 1:finish
             $table->date('started_at')->nullable();
             $table->smallInteger('days')->nullable();
-            $table->foreign('course_id')->references('id')->on('course')->onDelete('cascade');
-            $table->foreign('subject_id')->references('id')->on('subject')->onDelete('cascade');
+            $table->smallInteger('position')->nullable();
+            $table->timestamps();
+            $table->softDeletes(); // add
+            $table->foreign('course_id')->references('id')->on('course');
+            $table->foreign('subject_id')->references('id')->on('subject');
+            
         });
     }
 
