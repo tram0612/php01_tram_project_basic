@@ -25,16 +25,9 @@ class CourseController extends Controller
         return view('server.course.index',compact('courses'));
     }
 
-    public function findId($id){
-        $course = Course::find($id);
-        if(blank($course)){
-            return redirect()->back()->with('msg', __('messages.oop!'));
-        }else{
-            return $course;
-        }
-    }
+    
     public function finish(Request $req){
-        $course = $this->findId($id);
+        $course = $this->findCourse($id);
         $course->finish = !($course->finish);
         $course->save();
         return response()->json(['success' => true]);
@@ -83,7 +76,7 @@ class CourseController extends Controller
      */
     public function show($id)
     {
-        $course = $this->findId($id);
+        $course = $this->findCourse($id);
         return view('server.course.edit',compact('course')); 
     }
 
@@ -108,7 +101,7 @@ class CourseController extends Controller
      */
     public function update(CourseRequest $req, $id)
     {
-        $course = $this->findId($id);
+        $course = $this->findCourse($id);
         $temp = $req->except(['_token']);
         if($req->hasfile('img')){
             $image=$req->file('img');
@@ -139,7 +132,7 @@ class CourseController extends Controller
      */
     public function destroy($id)
     {
-        $course = $this->findId($id);
+        $course = $this->findCourse($id);
         if($course->img!=null){
             $img =$course->img;
             $path = public_path('upload/' . $img);

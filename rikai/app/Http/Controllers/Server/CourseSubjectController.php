@@ -17,17 +17,10 @@ class CourseSubjectController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function findCourseId($id){
-        $course = Course::find($id);
-        if(blank($course)){
-            return redirect()->back()->with('msg', __('messages.oop!'));
-        }else{
-            return $course;
-        }
-    }
+    
     public function index($courseId)
     {
-        $course = $this->findCourseId($courseId);
+        $course = $this->findCourse($courseId);
         $subjectOfCourse=$course->subject()->get();
         $subjects = Subject::all()->toArray();
         foreach($subjectOfCourse as $sc) {
@@ -66,7 +59,7 @@ class CourseSubjectController extends Controller
      */
     public function store(Request $req,$courseId)
     {
-        $course = $this->findCourseId($courseId);
+        $course = $this->findCourse($courseId);
         $subject = Subject::find($req->subjectId);
         $position = 0;
         $subjects=$course->subject()->get()->toArray();
@@ -136,7 +129,7 @@ class CourseSubjectController extends Controller
      */
     public function destroy($courseId,$subjectId)
     {
-       $course = $this->findCourseId($courseId);
+       $course = $this->findCourse($courseId);
         $del=$course->subject()->detach($subjectId);
         if($del){
             return back()->with('msg', __('messages.delete.success'));

@@ -9,7 +9,11 @@ use App\Http\Controllers\Server\CourseSubjectController as CourseSubjectControll
 use App\Http\Controllers\Server\UserCourseController as UserCourseController1;
 use App\Http\Controllers\Server\SubjectController as SubjectController1;
 use App\Http\Controllers\Server\TaskController as TaskController1;
-
+use App\Http\Controllers\Client\HomeController;
+use App\Http\Controllers\Client\ProfileController;
+use App\Http\Controllers\Client\CourseController as CourseController2;
+use App\Http\Controllers\Client\SubjectController as SubjectController2;
+use App\Http\Controllers\Client\UserTaskController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -20,13 +24,11 @@ use App\Http\Controllers\Server\TaskController as TaskController1;
 | contains the "web" middleware group. Now create something great!
 |
 */
-// Route::get('/', function () {
-// 			return bcrypt('11111111');
-// 		});
 
 Route::pattern('user','([0-9]+)');
 Route::pattern('course','([0-9]+)');
 Route::pattern('subject','([0-9]+)');
+Route::pattern('task','([0-9]+)');
 
 
 
@@ -67,4 +69,16 @@ Route::prefix('server')->name('server.')->group(function(){
 		
 	});
  
+});
+
+Route::middleware(['trainee'])->group(function () {
+ 	Route::get('/', [HomeController::class, 'index'])->name('index');
+ 	Route::resource('profile', ProfileController::class)->only(['show','update']);
+ 	Route::resource('course', CourseController2::class)->only(['index','show']);
+ 	Route::resource('course.subject', SubjectController2::class)->only(['show','edit']);
+ 	Route::resource('task', UserTaskController::class)->only(['update','store','edit','destroy']);
+});
+
+Route::fallback(function() {
+    return __('views.hmm');
 });

@@ -56,7 +56,7 @@ class TaskController extends Controller
         }
         $temp=$req->only(['name','detail']);
         $temp['subject_id'] = $id;
-        $temp['position'] =$position;
+        $temp['position'] =++$position;
         $task = Task::create($temp);
         if(isset($task)){
              $html = view('server.subject.task.addTask')->with(compact('task','id'))->render();

@@ -31,14 +31,7 @@ class UserController extends Controller
     {
         return view('server.user.add');
     }
-    public function findId($id){
-        $user = User::find($id);
-        if(blank($user)){
-            return redirect()->back()->with('msg', __('messages.oop!'));
-        }else{
-            return $user;
-        }
-    }
+    
 
     /**
      * Store a newly created resource in storage.
@@ -74,7 +67,7 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = $this->findId($id);
+        $user = $this->findUser($id);
         return view('server.user.profile',compact('user','id')); 
     }
 
@@ -98,7 +91,7 @@ class UserController extends Controller
      */
     public function update(UserRequest $req, $id)
     {
-        $user = $this->findId($id);
+        $user = $this->findUser($id);
         $temp = $req->except(['_token']);
         if($req->password!=null){
             $temp['password'] = bcrypt($req->password);
@@ -134,7 +127,7 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $user = $this->findId($id);
+        $user = $this->findUser($id);
         if(blank($user)){
             return back()->with('msg', __('messages.oop!'));
         }

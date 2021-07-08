@@ -58,4 +58,5 @@ return [
     'update' =>'Update',
     'oop!' => 'Oop! You have not filled in all the information',
     'date' => 'Date',
+    'hmm' => 'Hmm, why did you land here somehow?'
 ];

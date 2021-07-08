@@ -19,17 +19,10 @@ class UserCourseController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function findId($id){
-        $course = Course::find($id);
-        if(blank($course)){
-            return redirect()->back()->with('msg', __('messages.oop!'));
-        }else{
-            return $course;
-        }
-    }
+    
     public function index($courseId)
     {
-        $course = $this->findId($courseId);
+        $course = $this->findCourse($courseId);
         $url = URL::current();
         $role=0;
         if (strpos($url,'traniee') !== false) {
@@ -56,7 +49,7 @@ class UserCourseController extends Controller
     }
     public function addUser(Request $req)
     {
-        $course = $this->findId($req->courseId);
+        $course = $this->findCourse($req->courseId);
         $user = User::find($req->userId);
         if( blank($course) || blank($user) ){
             return response()->json(['success' => false]);
@@ -79,7 +72,7 @@ class UserCourseController extends Controller
     }
     public function destroy($courseId,$userId)
     {
-        $course = $this->findId($courseId);
+        $course = $this->findCourse($courseId);
         $del=$course->user()->detach($userId);
         if($del){
             return back()->with('msg', __('messages.delete.success'));

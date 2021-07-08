@@ -31,7 +31,7 @@ class SubjectController extends Controller
         if(blank($subject)){
             return back()->with('msg', __('messages.oop!'));
         }
-        return view('server.su.detail',compact('subject'));
+        return view('server.subject.detail',compact('subject'));
         
     }
     public function finish(Request $req){
