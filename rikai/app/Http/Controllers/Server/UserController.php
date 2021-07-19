@@ -9,6 +9,8 @@ use App\Models\User;
 use App\Http\Requests\UserRequest;
 use App\Http\Traits\UploadFile;
 use App\Enums\UserRole;
+use App\Jobs\SendEmailJob;
+use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -31,7 +33,16 @@ class UserController extends Controller
     {
         return view('server.user.add');
     }
-    
+    public function findUser($id)
+    {
+        $user = User::withTrashed()->find($id);
+        if(blank($user)){
+            abort(redirect()->back()->with('fail', __('messages.oop!')));
+        } 
+        else{
+            return $user; 
+        }
+    }
 
     /**
      * Store a newly created resource in storage.
@@ -48,7 +59,8 @@ class UserController extends Controller
             $image=$req->file('avatar');
             $temp['avatar'] = $this->upload($image);
         }
-        $insert = User::create($temp);
+        $insert = User::create($temp)->toArray();
+        dispatch(new SendEmailJob($insert));
 
         if(isset($insert)){
             return back()->with('msg', __('messages.add.success'));
@@ -115,7 +127,7 @@ class UserController extends Controller
         if($update){
             return back()->with('msg', __('messages.update.success'));
         }else{
-            return back()->with('msg', __('messages.update.fail'));
+            return back()->with('fail', __('messages.update.fail'));
         }
     }
 
@@ -128,9 +140,6 @@ class UserController extends Controller
     public function destroy($id)
     {
         $user = $this->findUser($id);
-        if(blank($user)){
-            return back()->with('msg', __('messages.oop!'));
-        }
         if($user->avatar!=null){
             $img = $user->avatar;
             $path = public_path('upload/' . $img);
@@ -138,18 +147,48 @@ class UserController extends Controller
                 unlink(public_path('upload/' . $img));
             }
         }
+        DB::beginTransaction();
+        try {
+            $delete = $user->forceDelete();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('fail', __('messages.delete.fail'));
+        }
+        return back()->with('msg', __('messages.delete.success'));
         
-        $user->delete();
-        return redirect()->back()->with('msg',__('messages.delete.success'));
-
+    }
+    public function softDelete($id){
+        $user = $this->findUser($id);
+        DB::beginTransaction();
+        try {
+            $delete=$user->delete();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('fail', __('messages.delete.fail'));
+        }
+        return back()->with('msg', __('messages.delete.success'));
+    }
+    public function restore($id){
+        $user = $this->findUser($id);
+        DB::beginTransaction();
+        try {
+            $restore = $user->restore();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('fail', __('messages.delete.fail'));
+        }
+        return back()->with('msg', __('messages.delete.success'));
     }
 
     public function trainee(){
-        $users = User::where('role',UserRole::Trainee)->paginate(5);
+        $users = User::withTrashed()->where('role',UserRole::Trainee)->paginate(5);
         return view('server.user.table',compact('users'));
     }
     public function supervisor(){
-        $users = User::where('role',UserRole::Supervisor)->paginate(5);
+        $users = User::withTrashed()->where('role',UserRole::Supervisor)->paginate(5);
         return view('server.user.table',compact('users'));
     }
 
