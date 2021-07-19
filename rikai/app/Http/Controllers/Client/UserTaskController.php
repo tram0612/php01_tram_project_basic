@@ -4,14 +4,9 @@ namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\UserSubject;
-use App\Models\Task;
 use App\Models\UserTask;
-use App\Models\Subject;
 use App\Enums\Status;
-use App\Enums\Finish;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\DB;
 class UserTaskController extends Controller
 {
     /**
@@ -29,9 +24,9 @@ class UserTaskController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function findTask($id){
+    public function loadTask($id){
         $task = UserTask::find($id);
-        if(blank($task)){
+        if(blank($task)||$task->user_id!=Auth::id()){
             abort(response()->json(['success' => false])) ;
         }
         else{
@@ -41,18 +36,30 @@ class UserTaskController extends Controller
     
     public function store(Request $request)
     {
-        $task = UserTask::create([
+        $userTask = UserTask::create([
             'user_id' => Auth::id(),
             'task_id' => $request->task_id,
             'comment' => $request->comment,
+            'duration' => $request->duration,
             'status'  => Status::Start,
         ]);
-        if($task){
-           $html = view('client.course.subject.addTask')->with(compact('task'))->render(); 
+        if($userTask){
+           $html = view('client.course.subject.addTask')->with(compact('userTask'))->render(); 
             return response()->json(['success' => true, 'html' => $html]); 
         }
         else{
              return response()->json(['success' => false]);
+        }
+    }
+    public function updateDuration(Request $request, $id)
+    {
+        $task = $this->loadTask($id);
+        $temp = $request->only(['duration']);
+        $update = $task->update($temp);
+        if($update){
+            return response()->json(['success' => true]);
+        }else{
+            return response()->json(['success' => false]);
         }
     }
 
@@ -75,7 +82,7 @@ class UserTaskController extends Controller
      */
     public function edit($id)
     {
-        $task = $this->findTask($id);
+        $task = $this->loadTask($id);
         if($task->status==Status::Start){
             $task->status = Status::Finish;
         }
@@ -95,7 +102,7 @@ class UserTaskController extends Controller
      */
     public function update(Request $request, $id)
     {
-        $task = $this->findTask($id);
+        $task = $this->loadTask($id);
         $temp = $request->only(['comment']);
         $update = $task->update($temp);
         if($update){
@@ -113,8 +120,8 @@ class UserTaskController extends Controller
      */
     public function destroy($id)
     {
-        $task = $this->findTask($id);
-        $task->delete();
+        $task = $this->loadTask($id);
+        $task->forceDelete();
         return response()->json(['success' => true]);
     }
 }

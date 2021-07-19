@@ -71,19 +71,19 @@
                       <!-- /.card-header -->
                       <div class="card-body p-0">
                         <ul class="products-list product-list-in-card pl-2 pr-2">
-                          @foreach($subjects as $subject)
+                          @foreach($subjects['user_subject'] as $subject)
                           <li class="item">
                             <div class="product-img">
-                              <img src="/upload/{{$subject['subject']['img']}}" alt="Subject Image" class="img-size-50">
+                              <img src="/upload/{{$subject['course_subject']['subject']['img']}}" alt="Subject Image" class="img-size-50">
                             </div>
                             <div class="product-info">
-                              <a href="{{route('course.subject.show',[$course->id,$subject['subject']['id']])}}" class="product-title">{{$subject['subject']['name']}}
+                              <a href="{{route('course.subject.show',[$course->id,$subject['course_subject']['subject']['id']])}}" class="product-title">{{$subject['course_subject']['subject']['name']}}
                                 <span class="float-right">
                                   <div class="form-check">
                                     @if($subject['status']==Status::Finish)
-                                    <input checked route="{{route('course.subject.edit',[$course->id,$subject['subject']['id']])}}" subject_id="{{$subject['id']}}" class="form-check-input statusSubject" type="checkbox">
+                                    <input checked route="{{route('course.subject.edit',[$course->id,$subject['course_subject']['subject']['id']])}}" subject_id="{{$subject['id']}}" class="form-check-input statusSubject" type="checkbox">
                                     @else
-                                    <input route="{{route('course.subject.edit',[$course->id,$subject['subject']['id']])}}" subject_id="{{$subject['id']}}" class="form-check-input statusSubject" type="checkbox">
+                                    <input route="{{route('course.subject.edit',[$course->id,$subject['course_subject']['subject']['id']])}}" subject_id="{{$subject['id']}}" class="form-check-input statusSubject" type="checkbox">
                                     @endif
                                   </div>
                                 </span>
@@ -144,23 +144,13 @@
                         @foreach($task->userTask as $userTask )
                         @if($userTask->status == Status::Finish)
                         <li >
-                          <!-- drag handle -->
-                          <span class="handle ui-sortable-handle">
-                            <i class="fas fa-ellipsis-v"></i>
-                            <i class="fas fa-ellipsis-v"></i>
-                          </span>
-                          <!-- checkbox -->
-                          <div class="icheck-primary d-inline ml-2">
-                            
-                          </div>
-                          <!-- todo text -->
-                          <span class="text">{{$userTask->comment}}</span>
-                          <!-- Emphasis label -->
-                          
-                          <!-- General tools such as edit or delete-->
-                          <div class="tools">
-                            <i class="fas fa-edit"></i>
-                            <i class="fas fa-trash-o"></i>
+                          <div class="row">
+                            <div class="col">
+                              {{$userTask->comment}}
+                            </div>
+                            <div class="col">
+                              {{$userTask->duration}}
+                            </div>
                           </div>
                         </li>
                         @endif

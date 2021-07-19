@@ -13,7 +13,7 @@ use App\Enums\Finish;
 class HomeController extends Controller
 {
     public function index(){
-    	$user = $this->findUser(Auth::id());
+    	$user = $this->loadUser(Auth::id());
     	$courses = $user->course()->where('user_id',Auth::id())->paginate(4);
     	return view('client.index',compact('courses'));
     }
