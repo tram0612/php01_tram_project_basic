@@ -5,8 +5,12 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Enums\Status;
+use Illuminate\Database\Eloquent\Relations\Pivot;
+use Illuminate\Database\Eloquent\SoftDeletes;
+
 class CourseSubject extends Model
 {
+    use SoftDeletes;
     protected $table = 'course_subject';
     protected $primaryKey='id';
     protected $fillable = [
@@ -14,8 +18,10 @@ class CourseSubject extends Model
         'subject_id',
         'status',
         'started_at',
-        'days'
+        'days',
+        'position',
     ];
+    public $timestamps = true;
     public function course()
     {
         return $this->belongsTo(Course::class,'course_id');
@@ -28,25 +34,22 @@ class CourseSubject extends Model
     {
         return $this->belongstoMany(User::class, 'user_subject')->withPivot('status','started_at','position') ->orderBy('pivot_position');
     }
+    public function userSubject()
+    {
+        return $this->hasMany(UserSubject::class,'course_subject_id');
+    }
     public static function updateDate($req, $courseId,$subjectId){
         $subject = CourseSubject::where('course_id',$courseId)->where('subject_id',$subjectId)->first();
         if(blank($subject)){
             return back()->with('msg', __('messages.oop!'));
         }
-        $temp = $req->only(['started_at']);
-        $update = $subject->update($temp);
-        return $update;
+        $date = date('Y-m-d', strtotime($req->started_at));
+        $subject->started_at = $date;
+        $subject->save();
+        return $subject;
     }
     public static function updateStatus($courseId,$subjectId){
-        $subject = CourseSubject::where('course_id',$courseId)->where('subject_id',$subjectId)->first();
-        if($subject->status==Status::Start){
-            $subject->status = Status::Finish;
-            
-        }
-        else{
-           $subject->status = Status::Start; 
-        }
-        $subject->save();
+        $subject = CourseSubject::where('course_id',$courseId)->where('subject_id',$subjectId)->update(['status'=>Status::Finish]);
         return $subject;
     }
     public static function sortSubject($req){
@@ -57,4 +60,9 @@ class CourseSubject extends Model
                         ->update(['position'=>$i]);
         }
     }
+    public function scopeSelectIdWhereCourseId($query,$courseId)
+    {
+        return $query->select('id')->where('course_id',$courseId);
+    }
+    
 }

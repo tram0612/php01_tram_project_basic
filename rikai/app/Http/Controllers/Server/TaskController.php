@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Models\Subject;
 use App\Models\Task;
 use App\Http\Requests\TaskRequest;
+use Illuminate\Support\Facades\DB;
 
 class TaskController extends Controller
 {
@@ -17,14 +18,8 @@ class TaskController extends Controller
      */
     public function index($id)
     {
-        
-        $subject = Subject::find($id);
-        if(blank($subject)){
-            return back()->with('msg', __('messages.oop!'));
-        }
-        else{
-            return view('server.subject.task.index',compact('subject'));
-        }
+        $subject = $this->loadSubjecWithTrash($id);
+        return view('server.subject.task.index',compact('subject'));
     }
 
     /**
@@ -43,13 +38,11 @@ class TaskController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $req,$id)
+    
+    public function store(TaskRequest $req,$id)
     {
 
-        $subject = Subject::find($id);
-        if(blank($subject)){
-            return response()->json(['success' => false]);
-        }
+        $subject = $this->loadSubjecWithTrash($id);
         $position = 0;
         if(!blank($subject->task()->get())){
             $position = $subject->task()->max('position');
@@ -59,10 +52,10 @@ class TaskController extends Controller
         $temp['position'] =++$position;
         $task = Task::create($temp);
         if(isset($task)){
-             $html = view('server.subject.task.addTask')->with(compact('task','id'))->render();
-            return response()->json(['success' => true, 'html' => $html]);
+             
+            return redirect()->route('server.subject.task.index',[$id])->with('msg', __('messages.add.success')); 
         }else{
-            return response()->json(['success' => false]);
+            return back()->with('fail', __('messages.oop!'));
         }
         
     }
@@ -82,14 +75,7 @@ class TaskController extends Controller
      */
     public function show($subjectId,$taskId)
     {
-        $s = Subject::find($subjectId);
-        $task = Task::find($taskId);
-        if(blank($s)){
-            return back()->with('msg', __('messages.oop!'));
-        }
-        if(blank($task)){
-            return back()->with('msg', __('messages.oop!'));
-        }
+        $task = $this->loadTask($taskId);
         return view('server.subject.task.edit',compact('task','subjectId'));
     }
 
@@ -103,6 +89,14 @@ class TaskController extends Controller
     {
         
     }
+    public function loadTask($taskId){
+        $task = Task::withTrashed()->find($taskId);
+        if(blank($task)){
+            abort(back()->with('fail', __('messages.oop!'))); 
+        }else{
+            return $task;
+        }
+    }
 
     /**
      * Update the specified resource in storage.
@@ -113,18 +107,11 @@ class TaskController extends Controller
      */
     public function update(TaskRequest $req, $subjectId, $taskId)
     {
-        $subject = Subject::find($subjectId);
-        $task = Task::find($taskId);
-        if(blank($subject)){
-            return back()->with('msg', __('messages.oop!'));
-        }
-        if(blank($task)){
-            return back()->with('msg', __('messages.oop!'));
-        }
+        $task = $this->loadTask($taskId);
         $temp = $req->except(['_token']);
         $update = $task->update($temp);
         if($update){
-            return back()->with('msg', __('messages.update.success'));
+            return redirect()->route('server.subject.task.index',[$subjectId])->with('msg', __('messages.update.success'));
         }else{
             return back()->with('msg', __('messages.update.fail'));
         }
@@ -138,15 +125,17 @@ class TaskController extends Controller
      */
     public function destroy($subjectId, $taskId)
     {
-        $task = Task::find($taskId);
-        if(blank($task)){
-            return back()->with('msg', __('messages.oop!'));
-        }
-        $del=$task->delete();
-        if($del){
-            return back()->with('msg', __('messages.delete.success'));
-        }else{
-            return back()->with('msg', __('messages.delete.fail'));
-        }
+        $task = $this->loadTask($taskId);
+        $this->checkDataInTransaction($task,__FUNCTION__);
     }
+    
+    public function softDelete($subjectId, $taskId){
+        $task = $this->loadTask($taskId);
+        $this->checkDataInTransaction($task,__FUNCTION__);
+    }
+    public function restore($subjectId, $taskId){
+        $task = $this->loadTask($taskId);
+        $this->checkDataInTransaction($task,__FUNCTION__);
+    }
+    
 }
