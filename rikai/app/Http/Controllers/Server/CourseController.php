@@ -2,15 +2,14 @@
 
 namespace App\Http\Controllers\Server;
 
+use App\Enums\Finish;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Subject;
 use App\Models\Course;
-use App\Models\CourseSubject;
 use App\Http\Traits\UploadFile;
 use App\Http\Requests\CourseRequest;
-use App\Enums\Status;
-use App\Models\UserSubject;
+use Illuminate\Support\Facades\DB;
+
 class CourseController extends Controller
 {
     use UploadFile;
@@ -19,21 +18,56 @@ class CourseController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
+    public function findCourse($id){
+        $course = Course::withTrashed()->find($id);
+        if(blank($course)){
+            abort(back()->with('fail', __('messages.oop!'))); 
+        }else{
+            return $course;
+        }
+    }
+    public function dashboard(){
+        $unfinishedCourses = Course::withTrashed()->where('finish',Finish::No)->get();
+        $doneCourses = Course::withTrashed()->where('finish',Finish::Yes)->get();
+        return view('server.index',compact('unfinishedCourses','doneCourses'));
+    }
     public function index()
     {
-        $courses = Course::index();
+        $courses = Course::withTrashed()->paginate(5);
         return view('server.course.index',compact('courses'));
     }
 
-    
-    public function finish(Request $req){
+    public function search(Request $request)
+    {
+        $search = $request->search;
+        $status = $request->status;
+        $courses = ''; 
+        if($status == null && $search == null){
+            $html = '<div class="alert alert-danger alert-dismissible">
+            <button type="button" class="close" data-dismiss="alert" aria-hidden="true">×</button>'. __('views.alertSearch').
+            '</div>';
+            return response()->json(['success' => false,'html' => $html]);
+        }
+        if($status == null){
+            
+            $courses = Course::withTrashed()->where('name','like','%'.$search.'%')->get();
+        }
+        else{
+            $courses = Course::withTrashed()->where('finish',$status)->where('name','like','%'.$search.'%')->get();
+        }      
+        $html = view('server.course.search')->with(compact('courses'))->render();
+
+        return response()->json(['success' => true,'html' => $html]);
+    }
+    public function finish(Request $request,$id){
         $course = $this->findCourse($id);
-        $course->finish = !($course->finish);
+        $course->finish = Finish::Yes;
         $course->save();
-        return response()->json(['success' => true]);
+        $html = '<span class="text-success">'.__('views.done').'</span>';
+        return response()->json(['success' => true,'html' => $html]);
     }
     public function detail($id){
-        $course = $this->findId($id);
+        $course = $this->findCourse($id);
         return view('server.course.detail',compact('course'));
     }
 
@@ -88,8 +122,10 @@ class CourseController extends Controller
      */
     public function progress($courseId,$userId)
     {
-        $subjects = UserSubject::findSubjectForUser($courseId,$userId);
-        return view('server.course.user.progress',compact('subjects'));
+        $course = $this->findCourse($courseId);
+        $user = $this->findUser($userId);
+        $subjects = Course::findSubjectforUserInCourse($courseId,$userId);
+        return view('server.course.user.progress',compact('course','user','subjects'));
     }
 
     /**
@@ -118,9 +154,9 @@ class CourseController extends Controller
         }
         $update = $course->update($temp);
         if($update){
-            return back()->with('msg', __('messages.update.success'));
+            return redirect()->route('server.course.index')->with('msg', __('messages.update.success'));
         }else{
-            return back()->with('msg', __('messages.update.fail'));
+            return back()->with('fail', __('messages.update.fail'));
         }
     }
 
@@ -130,6 +166,7 @@ class CourseController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
+    
     public function destroy($id)
     {
         $course = $this->findCourse($id);
@@ -140,9 +177,40 @@ class CourseController extends Controller
                 unlink(public_path('upload/' . $img));
             }
         }
-        $course->delete();
+        DB::beginTransaction();
+        try {
+            $delete=$course->delete();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('fail', __('messages.delete.fail'));
+        }
         return back()->with('msg', __('messages.delete.success'));
+        
     }
     
-   
+    public function softDelete($id){
+        $course = $this->findCourse($id);
+        DB::beginTransaction();
+        try {
+            $delete=$course->delete();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('fail', __('messages.delete.fail'));
+        }
+        return back()->with('msg', __('messages.delete.success'));
+    }
+    public function restore($id){
+        $course =$this->findCourse($id);
+        DB::beginTransaction();
+        try {
+            $restore = $course->restore();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('fail', __('messages.restore.fail'));
+        }
+        return back()->with('msg', __('messages.restore.success'));
+    }
 }
