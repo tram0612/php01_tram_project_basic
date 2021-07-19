@@ -47,8 +47,11 @@
                 @method('PATCH')
                 @csrf
                 <div class="card-body">
+                <div class="form-group">
+                <small class="text-danger">* : {{__('views.required')}}</small>
+                </div>
                   <div class="form-group">
-                    <label for="exampleInputEmail1">{{__('views.name')}}</label>
+                    <label for="exampleInputEmail1">{{__('views.name')}}<span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control" id="exampleInputEmail1" placeholder="Enter name"
                     value="{{ ( ! empty(old('name')) ? old('name') : $user->name ) }}">
                   </div>
@@ -56,14 +59,14 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                   @enderror
                   <div class="form-group">
-                    <label for="exampleInputEmail1">{{__('views.emial')}}</label>
+                    <label for="exampleInputEmail1">{{__('views.email')}}<span class="text-danger">*</span></label>
                     <input type="email" name="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email" value="{{ ( ! empty(old('email')) ? old('email') : $user->email ) }}">
                   </div>
                   @error('email')
                     <div class="alert alert-danger">{{ $message }}</div>
                   @enderror
                   <div class="form-group">
-                    <label for="exampleInputPassword1">{{__('views.password')}}</label>
+                    <label for="exampleInputPassword1">{{__('views.password')}}<small class="">  {{__('views.least')}}</small></label>
                     <input type="password" name="password" class="form-control" id="exampleInputPassword1" placeholder="Password" value="{{ ( ! empty(old('password')) ? old('password') : '' ) }}">
                   </div>
                    @error('password')
