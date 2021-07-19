@@ -4,13 +4,13 @@ namespace App\Http\Controllers\Server;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Subject;
-use App\Models\Course;
 use App\Models\User;
 use App\Enums\UserRole;
 use Illuminate\Support\Facades\URL;
 use App\Enums\Status;
-use App\Models\UserSubject;
+use App\Http\Requests\UserCourseRequest;
+use App\Models\UserCourse;
+use Illuminate\Support\Facades\DB;
 
 class UserCourseController extends Controller
 {
@@ -36,7 +36,6 @@ class UserCourseController extends Controller
         $userOfCourse=$course->user()->where('role',$role)->get();
         $users = User::where('role',$role)->get()->toArray();
         foreach($userOfCourse as $userCourse) {
-            
             foreach ($users as $key=> $user){
                 if($userCourse->id==$user['id']){
                     unset($users[$key]);
@@ -47,37 +46,65 @@ class UserCourseController extends Controller
         return view('server.course.user.index',compact('course','users','userOfCourse'));
         
     }
-    public function addUser(Request $req)
-    {
-        $course = $this->findCourse($req->courseId);
-        $user = User::find($req->userId);
-        if( blank($course) || blank($user) ){
-            return response()->json(['success' => false]);
-        }
-        
-        $course->user()->attach($req->userId);
-        $subjects = $course->subject()->get();
-        foreach($subjects as $subject){
-            UserSubject::create([
-                'user_id' => $req->userId,
-                'course_id' => $req->courseId,
-                'subject_id' => $subject->id,
-                'status'    => Status::Start,
+    public function store(UserCourseRequest $req,$courseId)
+    {  
+        $course = $this->findCourse($courseId);
+        $userIds = $req->input('userIds');
+        foreach($userIds as $key=>$userId){
+            $user = $this->findUser($userId);
+            UserCourse::create([
+                'user_id' => $userId,
+                'course_id' => $courseId,
+                'status' => Status::Start
             ]);
         }
-       
-       
-        $html = view('server.course.user.userAjax')->with(compact('user','req'))->render(); 
-        return response()->json(['success' => true, 'html' => $html]);
+        return back()->with('msg', __('messages.add.success'));
+    }
+    public function findUserCourse($courseId,$userId){
+        $userCourse = UserCourse::withTrashed()->where('course_id',$courseId)->where('user_id',$userId)->first();
+        if(blank($userCourse)){
+            abort(redirect()->back()->with('fail', __('messages.oop!')));
+        }else{
+            return $userCourse;
+        }
+
     }
     public function destroy($courseId,$userId)
-    {
-        $course = $this->findCourse($courseId);
-        $del=$course->user()->detach($userId);
-        if($del){
-            return back()->with('msg', __('messages.delete.success'));
-        }else{
-            return back()->with('msg', __('messages.delete.fail'));
+    {   
+        $userCourse = $this->findUserCourse($courseId,$userId);
+        DB::beginTransaction();
+        try {
+            $delete = $userCourse->forceDelete();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('fail', __('messages.delete.fail'));
         }
+        return back()->with('msg', __('messages.delete.success'));
     }
+    public function softDelete($courseId,$userId){
+        $userCourse = $this->findUserCourse($courseId,$userId);
+        DB::beginTransaction();
+        try {
+            $delete = $userCourse->delete();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('fail', __('messages.delete.fail'));
+        }
+        return back()->with('msg', __('messages.delete.success'));
+    }
+    public function restore($courseId,$userId){
+        $userCourse = $this->findUserCourse($courseId,$userId);
+        DB::beginTransaction();
+        try {
+            $restore=$userCourse->delete();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('fail', __('messages.restore.fail'));
+        }
+        return back()->with('msg', __('messages.restore.success'));
+    }
+    
 }
