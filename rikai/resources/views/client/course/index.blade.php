@@ -34,26 +34,31 @@
           <div class="card-body">
             <div class="row">
               @foreach($courses as $course)
+             
               <div class="col-md-12 col-lg-6 col-xl-4">
                 <div class="card ">
-                  <img class="card-img-top" src="/upload/{{$course->img}}" alt="{{$course->img}}">
+                  <img class="card-img-top" src="/upload/{{$course->course->img}}" alt="{{$course->course->img}}">
                   <div class="card-img-overlay">
                     <h5 class="card-title text-primary"></h5>
                     <p class="card-text pb-1 pt-1 text-white">
                     </p>
-                    <a class="btn btn-primary btn-sm" href="{{route('course.show',[$course->id])}}">
-                              {{$course->name}}
+                    <a class="btn btn-primary btn-sm" href="{{route('course.show',[$course->course->id])}}">
+                              {{$course->course->name}}
                     </a>
                   </div>
-                  
                 </div>
               </div>
+              
               @endforeach
 
             </div>
           </div>
         </div>
-       
+        <div class="row">
+          <ul class="pagination pagination-sm">
+           {{ $courses->links('pagination::bootstrap-4') }}
+          </ul>
+        </div>
         
         <!-- /.row -->
       </div><!-- /.container-fluid -->
