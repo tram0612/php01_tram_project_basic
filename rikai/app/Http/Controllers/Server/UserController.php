@@ -147,40 +147,16 @@ class UserController extends Controller
                 unlink(public_path('upload/' . $img));
             }
         }
-        DB::beginTransaction();
-        try {
-            $delete = $user->forceDelete();
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('fail', __('messages.delete.fail'));
-        }
-        return back()->with('msg', __('messages.delete.success'));
+        $this->checkDataInTransaction($user,__FUNCTION__);
         
     }
     public function softDelete($id){
         $user = $this->findUser($id);
-        DB::beginTransaction();
-        try {
-            $delete=$user->delete();
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('fail', __('messages.delete.fail'));
-        }
-        return back()->with('msg', __('messages.delete.success'));
+        $this->checkDataInTransaction($user,__FUNCTION__);
     }
     public function restore($id){
         $user = $this->findUser($id);
-        DB::beginTransaction();
-        try {
-            $restore = $user->restore();
-            DB::commit();
-        } catch (\Exception $e) {
-            DB::rollBack();
-            return back()->with('fail', __('messages.delete.fail'));
-        }
-        return back()->with('msg', __('messages.delete.success'));
+        $this->checkDataInTransaction($user,__FUNCTION__);
     }
 
     public function trainee(){
