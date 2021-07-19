@@ -5,11 +5,11 @@ namespace App\Http\Controllers\Server;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\Subject;
-use App\Models\Course;
 use App\Models\CourseSubject;
-use App\Models\UserSubject;
 use App\Enums\Status;
 use App\Http\Requests\CourseSubjectRequest;
+use Illuminate\Support\Facades\DB;
+
 class CourseSubjectController extends Controller
 {
     /**
@@ -23,21 +23,20 @@ class CourseSubjectController extends Controller
         $course = $this->findCourse($courseId);
         $subjectOfCourse=$course->subject()->get();
         $subjects = Subject::all()->toArray();
-        foreach($subjectOfCourse as $sc) {
-            foreach ($subjects as $key=> $s){
-                if($sc->id==$s['id']){
+        foreach($subjectOfCourse as $subjectCourse) {
+            foreach ($subjects as $key=> $subject){
+                if($subjectCourse->id==$subject['id']){
                     unset($subjects[$key]);
                     break;
                 }
             }
         }
         return view('server.course.subject',compact('course','subjects','subjectOfCourse'));
-        
     }
     public function status(Request $req){
         $subject = CourseSubject::updateStatus($req->courseId,$req->subjectId);
-        $html = view('server.course.status')->with(compact('subject'))->render();
-        return response()->json(['success' => true, 'html' => $html]);
+        $html = '<span class="text-success">'.__('views.done').'</span>';
+        return response()->json(['success' => true,'html' => $html]);
     }
 
     /**
@@ -57,19 +56,27 @@ class CourseSubjectController extends Controller
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\Response
      */
-    public function store(Request $req,$courseId)
+    public function store(CourseSubjectRequest $req,$courseId)
     {
         $course = $this->findCourse($courseId);
-        $subject = Subject::find($req->subjectId);
+        $subject = $this->findSubject($req->subject);
         $position = 0;
         $subjects=$course->subject()->get()->toArray();
         if(!empty($subjects)){
             $position = $course->subject()->max('position');
         }
-        $course->subject()->attach($req->subjectId, ['started_at'=>$req->startedAt,'position'=> ++$position]);
-        $status = Status::Start;
-        $html = view('server.course.subjectAjax')->with(compact('courseId','subject','req','status'))->render(); 
-        return response()->json(['success' => true, 'html' => $html]);
+        $courseSubject = CourseSubject::create([
+            'course_id' => $courseId,
+            'subject_id'=> $req->subject,
+            'started_at'=>date('Y-m-d', strtotime($req->started_at)),
+            'position'=> ++$position
+        ]);
+        if($courseSubject){
+            return redirect()->route('server.course.subject.index',[$courseId])->with('msg', __('messages.add.success'));
+        }else{
+            return redirect()->route('server.course.subject.index',[$courseId])->with('fail', __('messages.add.fail'));
+        }
+        
     }
 
     /**
@@ -80,12 +87,8 @@ class CourseSubjectController extends Controller
      */
     public function show($courseId,$subjectId)
     {
-        
-        $subject = Subject::with('courseSubject')->find($subjectId);
-        if(blank($subject)){
-            return back()->with('msg', __('messages.oop!'));
-        }
-        return view('server.course.editSubject',compact('subject','courseId'));
+        $courseSubject = $this->findCourseSubject($courseId,$subjectId);
+        return view('server.course.editSubject',compact('courseSubject'));
     }
 
     /**
@@ -107,16 +110,16 @@ class CourseSubjectController extends Controller
      * @return \Illuminate\Http\Response
      */
     public function sortSubject(Request $req){
-        CourseSubject::sortSubject($req);
+        $CourseSubject = CourseSubject::sortSubject($req);
         return response()->json(['success' => true]);
     }
     public function update(CourseSubjectRequest $req, $courseId,$subjectId)
     {
         $subject = CourseSubject::updateDate($req, $courseId,$subjectId);
         if($subject){
-            return back()->with('msg', __('messages.update.success'));
+            return redirect()->route('server.course.subject.index',[$courseId])->with('msg', __('messages.update.success'));
         }else{
-            return back()->with('msg', __('messages.update.fail'));
+            return back()->with('fail', __('messages.update.fail'));
         }
 
     }
@@ -127,14 +130,51 @@ class CourseSubjectController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($courseId,$subjectId)
+    public function findCourseSubject($courseId,$subjectId)
     {
-       $course = $this->findCourse($courseId);
-        $del=$course->subject()->detach($subjectId);
-        if($del){
-            return back()->with('msg', __('messages.delete.success'));
+        $courseSubject = CourseSubject::withTrashed()->where('course_id',$courseId)->where('subject_id',$subjectId)->first();
+        if(blank($courseSubject)){
+            abort(redirect()->back()->with('fail', __('messages.oop!')));
         }else{
-            return back()->with('msg', __('messages.delete.fail'));
+            return $courseSubject;
         }
     }
+    public function destroy($courseId,$subjectId)
+    {
+        $courseSubject = $this->findCourseSubject($courseId,$subjectId);
+        DB::beginTransaction();
+        try {
+            $delete=$courseSubject->forceDelete();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('fail', __('messages.delete.fail'));
+        }
+        return back()->with('msg', __('messages.delete.success'));
+    }
+    public function softDelete($courseId,$subjectId){
+        $courseSubject = $this->findCourseSubject($courseId,$subjectId);
+        DB::beginTransaction();
+        try {
+            $delete = $courseSubject->delete();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('fail', __('messages.delete.fail'));
+        }
+        return back()->with('msg', __('messages.delete.success'));
+    }
+    public function restore($courseId,$subjectId){
+        $courseSubject = $this->findCourseSubject($courseId,$subjectId);
+         DB::beginTransaction();
+        try {
+            $restore = $courseSubject->restore();
+            DB::commit();
+        } catch (\Exception $e) {
+            DB::rollBack();
+            return back()->with('fail', __('messages.restore.fail'));
+        }
+        return back()->with('msg', __('messages.restore.success'));
+    }
+    
 }
