@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Client;
 
 use App\Http\Controllers\Controller;
+use App\Http\Requests\UserRequest;
 use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
@@ -51,10 +52,10 @@ class ProfileController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $req, $id)
+    public function update(UserRequest $req, $id)
     {
         if($id!=Auth::id()){
-            return back()->with('msg', __('messages.oop!'));
+            return back()->with('fail', __('messages.oop!'));
         }
         $user = $this->findUser($id);
         $temp = $req->except(['_token']);
@@ -80,18 +81,7 @@ class ProfileController extends Controller
         if($update){
             return back()->with('msg', __('messages.update.success'));
         }else{
-            return back()->with('msg', __('messages.update.fail'));
+            return back()->with('fail', __('messages.update.fail'));
         }
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
     }
 }

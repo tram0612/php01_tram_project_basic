@@ -22,9 +22,6 @@ class UserObserver
             foreach($userCourses as $userCourse){
                 $userCourse->forceDelete();
             }
-            foreach($userTasks as $userTask){
-                $userTask->forceDelete();
-            }
         }else{
             foreach($userCourses as $userCourse){
                 $userCourse->delete();

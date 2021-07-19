@@ -57,12 +57,28 @@
                       <td><a href="{{$url}}"><img width="70px" height="70px" src="/upload/{{$user->avatar}}"></a></td>
                       <td>{{$user->email}}</td>
                       <td>
-                        <button type="button" class="btn btn-block bg-gradient-info btn-xs"><a href="{{$url}}">{{__('views.edit')}}</a></button>
-                        <form method="POST" action="{{ route('server.user.destroy', [ 'user'=> $user->id ]) }}">
+                        <button type="button" class="btn btn-block bg-gradient-info btn-xs"><a style="color: black;" href="{{$url}}">{{__('views.edit')}}</a></button>
+                        @if($user->deleted_at == null)
+                        <form method="post" action="{{route('server.user.softDelete',[$user->id])}}">
+                          @csrf
+                          <button type="submit" onclick="return confirm(trans('views.softDeleteConfirm'))" class="btn btn-block bg-gradient-warning btn-xs">
+                            <i data-feather="delete">{{__('views.softDelete')}}</i>
+                          </button>
+                        </form>
+                        @else
+                        <form method="post" action="{{route('server.user.restore',[$user->id])}}">
+                          @csrf
+                          <button type="submit" onclick="return confirm(trans('views.restoreConfirm'))" class="btn btn-block bg-gradient-success btn-xs">
+                            <i data-feather="delete">{{__('views.restore')}}</i>
+                          </button>
+                        </form>
+                        @endif
+                        <form method="post" action="{{route('server.user.destroy',[$user->id])}}">
                           @csrf
                           <input type="hidden" name="_method" value="DELETE">
-                          <button type="submit" class="btn btn-block bg-gradient-danger btn-xs">
-                            <i data-feather="delete">{{__('views.delete')}}</i>
+                          
+                          <button type="submit" onclick="return confirm(trans('views.hardDeleteConfirm'))" class="btn btn-block bg-gradient-danger btn-xs">
+                            <i data-feather="delete">{{__('views.hardDelete')}}</i>
                           </button>
                         </form>
                       </td>

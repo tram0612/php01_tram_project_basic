@@ -77,28 +77,43 @@
                               <ul class="todo-list ui-sortable" id="{{$task->id}}" data-widget="todo-list">
                                 @foreach($task->userTask as $userTask )
                                 
-                                <li class="{{($userTask->status == Status::Finish)?'done':''}}">
+                                <li>
                                   <div class="input-group">
-                                    <input route="{{route('task.update',[$userTask->id])}}" type="text" class="form-control comment" name="comment" value="{{$userTask->comment}}">
-                                    <input route="{{route('task.edit',[$userTask->id])}}" class="form-control checkStatus" type="checkbox" {{($userTask->status == Status::Finish)?'checked':''}} value="" name="">
+                                    <input route="{{route('task.update',[$userTask->id])}}" type="text" class="col-sm-8 form-control comment" name="comment" value="{{$userTask->comment}}">
+                                    <div class="input-group-prepend">
+                                      <span class="input-group-text">
+                                        <i class="far fa-calendar-alt"></i>
+                                      </span>
+                                    </div>
+                                    <input route="{{route('task.updateDuration',[$userTask->id])}}" type="text" name="duration" class="col-sm-3 form-control reservation duration" value="{{$userTask->duration}}">
+                                    <input route="{{route('task.edit',[$userTask->id])}}" class="col-sm-2 form-control checkStatus" type="checkbox" {{($userTask->status == Status::Finish)?'checked':''}} value="" >
                                     <div class="tools">
                                       <i class="fas fa-trash delete" route="{{route('task.destroy',[$userTask->id])}}"></i>
                                     </div>
                                   </div>
                                 </li>
-
                                 @endforeach
-
                               </ul>
                             </div>
                             <!-- /.card-body -->
                             <div class="card-footer clearfix">
+                            <div class="d-flex justify-content-center">
+                                <div id="alert_{{$task->id}}">
+                                  
+                                </div>
+                              </div>
+
                               <div class="input-group">
-                                  <input type="text" name="task" placeholder="Type Task ..." class="form-control">
-                                  <span class="input-group-append">
-                                    <button task_id="{{$task->id}}" route="{{route('task.store')}}" type="button" class="btn btn-primary addUserTask">{{__('views.addTask')}}</button>
+                                <input type="text" name="task" placeholder="Type Task ..." class="form-control">
+                                <div class="input-group-prepend">
+                                  <span class="input-group-text">
+                                    <i class="far fa-calendar-alt"></i>
                                   </span>
                                 </div>
+                                <input type="text" name="duration" class="col-sm-3 form-control float-right reservation" >
+                                <button task_id="{{$task->id}}" route="{{route('task.store')}}" type="button" class="btn btn-primary addUserTask">{{__('views.addTask')}}</button>
+                              </div>
+                              
                             </div>
                           </div>
                         </div>
@@ -117,20 +132,13 @@
                         @foreach($task->userTask as $userTask )
                         @if($userTask->status == Status::Finish)
                         <li >
-                          <!-- drag handle -->
-                          <span class="handle ui-sortable-handle">
-                            <i class="fas fa-ellipsis-v"></i>
-                            <i class="fas fa-ellipsis-v"></i>
-                          </span>
-                          <!-- checkbox -->
-                          <div class="icheck-primary d-inline ml-2">
-                            
-                          </div>
-                          <!-- todo text -->
-                          <span class="text">{{$userTask->comment}}</span>
-                          <div class="tools">
-                            <i class="fas fa-edit"></i>
-                            <i class="fas fa-trash-o"></i>
+                          <div class="row">
+                            <div class="col">
+                              {{$userTask->comment}}
+                            </div>
+                            <div class="col">
+                              {{$userTask->duration}}
+                            </div>
                           </div>
                         </li>
                         @endif
@@ -153,7 +161,6 @@
 
 @endsection
 @section('js')
-@include('i18n')
-<script src="{{ asset('templates/dist/js/userTask.js') }}"></script>
+@include('client.layouts.jsUserTask')
 @endsection
 

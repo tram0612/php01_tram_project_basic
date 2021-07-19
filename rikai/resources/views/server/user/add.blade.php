@@ -42,8 +42,11 @@
               <form method="post" action="{{route('server.user.store')}}" enctype="multipart/form-data">
                 @csrf
                 <div class="card-body">
+                <div class="form-group">
+                <small class="text-danger">* : {{__('views.required')}}</small>
+                </div>
                   <div class="form-group">
-                    <label for="exampleInputEmail1">{{__('views.name')}}</label>
+                    <label for="exampleInputEmail1">{{__('views.name')}}<span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control" id="exampleInputEmail1" placeholder="Enter name"
                     value="{{old('name')}}">
                   </div>
@@ -51,21 +54,21 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                   @enderror
                   <div class="form-group">
-                    <label for="exampleInputEmail1">{{__('views.email')}}</label>
+                    <label for="exampleInputEmail1">{{__('views.email')}}<span class="text-danger">*</span></label>
                     <input type="email" name="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email" value="{{ old('email')}}">
                   </div>
                   @error('email')
                     <div class="alert alert-danger">{{ $message }}</div>
                   @enderror
                   <div class="form-group">
-                    <label for="exampleInputPassword1">{{__('views.password')}}</label>
+                    <label for="exampleInputPassword1">{{__('views.password')}}<span class="text-danger">*</span><small class="">  {{__('views.least')}}</small></label>
                     <input type="password" name="password" class="form-control" id="exampleInputPassword1" placeholder="Password" value="{{ old('password')}}">
                   </div>
                    @error('password')
                     <div class="alert alert-danger">{{ $message }}</div>
                   @enderror
                   <div class="form-group">
-                    <label for="exampleInputFile">{{__('views.avatar')}}</label>
+                    <label for="exampleInputFile">{{__('views.avatar')}}<span class="text-danger">*</span></label>
                     <div class="input-group">
                       <div class="custom-file">
                         <input type="file" name="avatar" class="custom-file-input" id="exampleInputFile">
@@ -78,7 +81,7 @@
                     <div class="alert alert-danger">{{ $message }}</div>
                   @enderror
                   <div class="form-group">
-                    <label>Role</label>
+                    <label>Role<span class="text-danger">*</span></label>
                     <select name="role" class="form-control">
                       
                       <option value="{{UserRole::Supervisor}}">{{__('enums.role.supervisor')}}</option>

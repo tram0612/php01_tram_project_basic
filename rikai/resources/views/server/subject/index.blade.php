@@ -7,21 +7,18 @@
   <div class="content-wrapper">
     <!-- Content Header (Page header) -->
     <section class="content-header">
-      <div class="container-fluid">
-        <div class="row mb-2">
-          <div class="col-sm-6">
-            @if (session('msg'))
+      <div class="row mb-2">
+          @if (session('msg'))
           <div class="alert alert-success">
-            {{session('msg')}}
+          {{session('msg')}}
           </div>
-         @endif 
+          @endif 
+          @if (session('fail'))
+          <div class="alert alert-danger">
+          {{session('fail')}}
           </div>
-          <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-            </ol>
-          </div>
-        </div>
-      </div><!-- /.container-fluid -->
+          @endif 
+      </div>
     </section>
 
     <!-- Main content -->
@@ -29,46 +26,66 @@
       <div class="container-fluid">
         <div class="row">
           <div class="col-md-12">
-            <div class="card">
+            <div class="d-flex justify-content-center">
+              <div id="alertSearch">
+              
+              </div>
+            </div>
+         
+            <div class="row">
+              <div class="col"></div>
+              <div class="col">
+                <select id="selectStatus" name="status" class="form-control">
+                  <option value="">-----{{__('views.select')}} {{__('views.status')}}-----</option>
+                  <option value="{{Search::NoTrash}}">{{__('views.notTrash')}}</option>
+                  <option value="{{Search::Trash}}">{{__('views.trash')}}</option>
+                </select>
+              </div>
+              <div class="col"><input id="search" type="text" class="form-control mb-2" id="inlineFormInput" placeholder="Type here to search"></div>
+            </div>
+             
+            <div class="card" id="subjectTable">
               <div class="card-header">
-                <h3 class="card-title">{{__('views.subject')}}</h3>
+              <h3 class="card-title">{{__('views.subject')}}</h3>
               </div>
               <!-- /.card-header -->
               <div class="card-body">
                 <table class="table table-bordered">
                   <thead>
                     <tr>
-                      <th style="width: 10px">#</th>
                       <th>{{__('views.name')}}</th>
                       <th>{{__('views.image')}}</th>
-                      <th>{{__('views.finish')}}</th>
                       <th>{{__('views.task')}}</th>
                       <th>{{__('views.action')}}</th>
                     </tr>
                   </thead>
                   <tbody>
                     @foreach($subjects as $subject)
-                    
                     <tr>
-                      <td>{{$subject->id}}</td>
                       <td><a href="{{route('server.subject.detail',[$subject->id])}}"> {{$subject->name}}</a></td>
                       <td><a href=""><img width="70px" height="70px" src="/upload/{{$subject->img}}"></a></td>
-                      <td><div class="form-check">
-                        @if( $subject->finish == Finish::Yes )
-                          <input data_id="{{$subject->id}}" checked class="form-check-input finish" type="checkbox">
-                        @else
-                          <input data_id="{{$subject->id}}" class="form-check-input finish" type="checkbox">
-                        @endif
-                        </div>
-                      </td>
                       <td><a href="{{route('server.subject.task.index',[$subject->id])}}">{{__('views.view_task')}}</a></td>
-                      
-                        <td>
-                        <button type="button" class="btn btn-block bg-gradient-info btn-xs"><a href="{{ route('server.subject.show', [$subject->id]) }}">{{__('views.edit')}}</a></button>
+                      <td>
+                        <button type="button" class="btn btn-block bg-gradient-info btn-xs"><a style="color: black;" href="{{ route('server.subject.show', [$subject->id]) }}">{{__('views.edit')}}</a></button>
+                        @if($subject->deleted_at == null)
+                        <form method="POST" action="{{ route('server.subject.softDelete', [$subject->id]) }}">
+                          @csrf
+                          <button type="submit" onclick="return confirm(trans('views.softDeleteConfirm'))" class="btn btn-block bg-gradient-warning btn-xs">
+                            <i data-feather="delete">{{__('views.softDelete')}}</i>
+                          </button>
+                        </form>
+                        @else
+                        <form method="POST" action="{{ route('server.subject.restore', [$subject->id]) }}">
+                          @csrf
+                          <button type="submit" onclick="return confirm(trans('views.restoreConfirm'))" class="btn btn-block bg-gradient-success btn-xs">
+                            <i data-feather="delete">{{__('views.restore')}}</i>
+                          </button>
+                        </form>
+                        @endif
                         <form method="POST" action="{{ route('server.subject.destroy', [$subject->id]) }}">
                           @csrf
                           <input type="hidden" name="_method" value="DELETE">
-                          <button type="submit" class="btn btn-block bg-gradient-danger btn-xs">
+                          <button type="submit" onclick="return confirm(trans('views.hardDeleteConfirm'))" class="btn btn-block bg-gradient-danger btn-xs">
                             <i data-feather="delete">{{__('views.delete')}}</i>
                           </button>
                         </form>
@@ -86,18 +103,9 @@
                 </ul>
               </div>
             </div>
-            <!-- /.card -->
-
-            
-            <!-- /.card -->
+            </div>
           </div>
-          <!-- /.col -->
-         
-          <!-- /.col -->
         </div>
-       
-        
-        <!-- /.row -->
       </div><!-- /.container-fluid -->
     </section>
     <!-- /.content -->
@@ -105,6 +113,7 @@
   <!-- /.content-wrapper -->
 @endsection
 @section('js')
-<script src="{{ asset('templates/dist/js/statusSubject.js') }}"></script>
+@include('i18n')
+<script src="{{ asset('templates/dist/js/searchSubject.js') }}"></script>
 @endsection
 

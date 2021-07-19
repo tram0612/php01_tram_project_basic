@@ -25,7 +25,7 @@ class CourseSubjectObserver
         foreach($userIds as $user){
             UserSubject::create([
                 'user_id' => $user->user_id,
-                'course_subject_id' => CourseSubject::latest()->first()->id,
+                'cs_id' => CourseSubject::latest()->first()->id,
                 'status' => Status::Start,
             ]); 
         }

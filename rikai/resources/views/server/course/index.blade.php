@@ -17,10 +17,7 @@
          @endif 
           </div>
           <div class="col-sm-6">
-            <ol class="breadcrumb float-sm-right">
-              <li class="breadcrumb-item"><a href="#">Home</a></li>
-              <li class="breadcrumb-item active">Simple Tables</li>
-            </ol>
+            
           </div>
         </div>
       </div><!-- /.container-fluid -->
@@ -31,19 +28,35 @@
       <div class="container-fluid">
         <div class="row">
           <div class="col-md-12">
-            <div class="card">
+            <div class="d-flex justify-content-center">
+              <div id="alertSearch">
+              
+              </div>
+            </div>
+         
+            <div class="row">
+              <div class="col"></div>
+              <div class="col">
+                <select id="selectStatus" name="status" class="form-control">
+                  <option value="">-----{{__('views.select')}} {{__('views.status')}}-----</option>
+                  <option value="{{Finish::No}}">{{__('views.unfinished')}}</option>
+                  <option value="{{Finish::Yes}}">{{__('views.done')}}</option>
+                </select>
+              </div>
+              <div class="col"><input id="search" type="text" class="form-control mb-2" id="inlineFormInput" placeholder="Type here to search"></div>
+            </div>
+            <div class="card" id="courseTable">
               <div class="card-header">
-                <h3 class="card-title">{{__('views.course')}}</h3>
+                <h3>{{__('views.course')}}</h3>
               </div>
               <!-- /.card-header -->
               <div class="card-body">
                 <table class="table table-bordered">
                   <thead>
                     <tr>
-                      <th style="width: 10px">#</th>
                       <th>{{__('views.name')}}</th>
                       <th>{{__('views.image')}}</th>
-                      <th>{{__('views.finish')}}</th>
+                      <th>{{__('views.status')}}</th>
                       <th>{{__('views.subject')}}</th>
                       <th>{{__('views.trainee')}}</th>
                       <th>{{__('views.supervisor')}}</th>
@@ -52,30 +65,52 @@
                   </thead>
                   <tbody>
                     @foreach($courses as $course)
-                    
                     <tr>
-                      <td>{{$course->id}}</td>
                       <td><a href="{{route('server.course.detail',[$course->id])}}"> {{$course->name}}</a></td>
                       <td><a href=""><img width="70px" height="70px" src="/upload/{{$course->img}}"></a></td>
-                      <td><div class="form-check">
-                        @if( $course->finish == Finish::Yes )
-                          <input data_id="{{$course->id}}" checked class="form-check-input finish" type="checkbox">
+                      <td id="status_{{$course->id}}">
+                        @if($course->finish == Finish::No)
+                        <span class="text-danger">
+                        {{__('views.unfinished')}}
+                        </span>
                         @else
-                          <input data_id="{{$course->id}}" class="form-check-input finish" type="checkbox">
+                        <span class="text-success">
+                        {{__('views.done')}}
+                        </span>
                         @endif
-                        </div></td>
+                        </td>
                       <td><a href="{{route('server.course.subject.index',[$course->id])}}"> {{__('views.view_subject')}}</a></td>
                       <td><a href="{{route('server.course.trainee',[$course->id])}}"> {{__('views.view_trainee')}}</a></td>
                       <td><a href="{{route('server.course.supervisor',[$course->id])}}"> {{__('views.view_supervisor')}}</a></td>
                         <td>
-                        <button type="button" class="btn btn-block bg-gradient-info btn-xs"><a href="{{ route('server.course.show', [$course->id]) }}">{{__('views.edit')}}</a></button>
-                        <form method="POST" action="{{ route('server.course.destroy', [$course->id]) }}">
+                        @if($course->finish == Finish::No)
+                        <button type="button" route="{{route('server.course.finish',[$course->id])}}" id="bt_{{$course->id}}" data_c="{{$course->id}}"  class="btn btn-block btn-outline-success btn-sm finish">{{__('views.finish')}}</button>
+                        @endif  
+                        <button type="button" class="btn btn-block bg-gradient-primary btn-xs"><a style="color: black;" href="{{route('server.course.show',[$course->id])}}">{{__('views.edit')}}</a></button>
+                        @if($course->deleted_at == null)
+                        <form method="post" action="{{route('server.course.softDelete',[$course->id])}}">
                           @csrf
-                          <input type="hidden" name="_method" value="DELETE">
-                          <button type="submit" class="btn btn-block bg-gradient-danger btn-xs">
-                            <i data-feather="delete">{{__('views.delete')}}</i>
+                          <button type="submit" onclick="return confirm(trans('views.softDeleteConfirm'))" class="btn btn-block bg-gradient-warning btn-xs">
+                            <i data-feather="delete">{{__('views.softDelete')}}</i>
                           </button>
                         </form>
+                        @else
+                        <form method="post" action="{{route('server.course.restore',[$course->id])}}">
+                          @csrf
+                          <button type="submit" onclick="return confirm(trans('views.restoreConfirm'))" class="btn btn-block bg-gradient-success btn-xs">
+                            <i data-feather="delete">{{__('views.restore')}}</i>
+                          </button>
+                        </form>
+                        @endif
+                        <form method="post" action="{{route('server.course.destroy',[$course->id])}}">
+                          @csrf
+                          <input type="hidden" name="_method" value="DELETE">
+                          
+                          <button type="submit" onclick="return confirm(trans('views.hardDeleteConfirm'))" class="btn btn-block bg-gradient-danger btn-xs">
+                            <i data-feather="delete">{{__('views.hardDelete')}}</i>
+                          </button>
+                        </form>
+                        
                       </td>
                     </tr>
                     @endforeach
@@ -111,5 +146,7 @@
 
 
 @section('js')
-<script src="{{ asset('templates/dist/js/finish.js') }}"></script>
+@include('i18n')
+<script src="{{asset('templates/dist/js/finishCourse.js')}}"></script>
+<script src="{{asset('templates/dist/js/searchCourse.js')}}"></script>
 @endsection

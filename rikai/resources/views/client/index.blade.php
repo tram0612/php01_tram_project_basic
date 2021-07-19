@@ -14,7 +14,6 @@
         @endif
         <div class="row mb-2">
           <div class="col-sm-6">
-            <h1 class="m-0">{{__('views.dashboard')}}</h1>
           </div><!-- /.col -->
           <div class="col-sm-6">
             <ol class="breadcrumb float-sm-right">
@@ -30,32 +29,56 @@
     <section class="content">
       <div class="container-fluid">
         <!-- Small boxes (Stat box) -->
-        
-        <div class="row">
-          @foreach($courses as $course)
-          <div class="col-lg-3 col-6">
-            <!-- small box -->
-            <div class="small-box bg-info">
-              <div class="inner">
-                <h3>{{$course->name}}</h3>
+        <h3 class="mb-2">{{__('views.unfinishedCourse')}}</h3>
+        <div class="card card-success">
+          <div class="card-body">
+            <div class="row">
+              @foreach($unfinishedCourses as $course)
+             
+              <div class="col-md-12 col-lg-6 col-xl-4">
+                <div class="card ">
+                  <img class="card-img-top" src="/upload/{{$course->course->img}}" alt="{{$course->course->img}}">
+                  <div class="card-img-overlay">
+                    <h5 class="card-title text-primary"></h5>
+                    <p class="card-text pb-1 pt-1 text-white">
+                    </p>
+                    <a class="btn btn-primary btn-sm" href="{{route('course.show',[$course->course->id])}}">
+                              {{$course->course->name}}
+                    </a>
+                  </div>
+                </div>
               </div>
-              <div class="icon">
-                <i class="ion ion-bag"></i>
-              </div>
-              <a href="{{route('course.show',[$course->id])}}" class="small-box-footer">More info <i class="fas fa-arrow-circle-right"></i></a>
+              
+              @endforeach
+
             </div>
           </div>
-          @endforeach
-          
         </div>
-        <div class="row">
-          <ul class="pagination pagination-sm">
-           {{ $courses->links('pagination::bootstrap-4') }}
-          </ul>
+        <h3 class="mb-2">{{__('views.doneCourse')}}</h3>
+        <div class="card card-success">
+          <div class="card-body">
+            <div class="row">
+              @foreach($doneCourses as $course)
+             
+              <div class="col-md-12 col-lg-6 col-xl-4">
+                <div class="card ">
+                  <img class="card-img-top" src="/upload/{{$course->course->img}}" alt="{{$course->course->img}}">
+                  <div class="card-img-overlay">
+                    <h5 class="card-title text-primary"></h5>
+                    <p class="card-text pb-1 pt-1 text-white">
+                    </p>
+                    <a class="btn btn-primary btn-sm" href="{{route('course.show',[$course->course->id])}}">
+                              {{$course->course->name}}
+                    </a>
+                  </div>
+                </div>
+              </div>
+              
+              @endforeach
+
+            </div>
+          </div>
         </div>
-        <!-- /.row -->
-        <!-- Main row -->
-        
     </section>
     <!-- /.content -->
   </div>
