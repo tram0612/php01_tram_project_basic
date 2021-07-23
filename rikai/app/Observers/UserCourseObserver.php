@@ -23,12 +23,16 @@ class UserCourseObserver
         foreach($ids as $id){
             UserSubject::create([
                 'user_id' => $userCourse->user_id,
-                'cs_id' => $id->id,
+                'course_subject_id' => $id->id,
                 'status' => Status::Start,
             ]); 
         }
     }
-    
+    public function findRelateddUserSubject($courseId,$userId){
+        return UserSubject::withTrashed()->where('user_id',$userId)->whereHas('courseSubject' , function ($query) use ($courseId){
+            $query->where('course_id',$courseId);
+        })->get();
+    }
     public function deleting(UserCourse $userCourse)
     {
         $courseId = $userCourse->course_id;
@@ -56,7 +60,7 @@ class UserCourseObserver
     {
         $courseId = $userCourse->course_id;
         $userId = $userCourse->user_id;
-        $userSubjects = UserSubject::findRelateddUserSubject($courseId,$userId);
+        $userSubjects = $this->findRelateddUserSubject($courseId,$userId);
         foreach($userSubjects as $userSubject){
             $userSubject->restore();
         }
