@@ -3,14 +3,11 @@
 namespace App\Http\Controllers\Server;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use App\Models\User;
 use App\Http\Requests\UserRequest;
 use App\Http\Traits\UploadFile;
 use App\Enums\UserRole;
 use App\Jobs\SendEmailJob;
-use Illuminate\Support\Facades\DB;
 
 class UserController extends Controller
 {
@@ -33,17 +30,7 @@ class UserController extends Controller
     {
         return view('server.user.add');
     }
-    public function findUser($id)
-    {
-        $user = User::withTrashed()->find($id);
-        if(blank($user)){
-            abort(redirect()->back()->with('fail', __('messages.oop!')));
-        } 
-        else{
-            return $user; 
-        }
-    }
-
+    
     /**
      * Store a newly created resource in storage.
      *
@@ -79,7 +66,7 @@ class UserController extends Controller
      */
     public function show($id)
     {
-        $user = $this->findUser($id);
+        $user = $this->loadUserWithTrash($id);
         return view('server.user.profile',compact('user','id')); 
     }
 
@@ -103,7 +90,7 @@ class UserController extends Controller
      */
     public function update(UserRequest $req, $id)
     {
-        $user = $this->findUser($id);
+        $user = $this->loadUserWithTrash($id);
         $temp = $req->except(['_token']);
         if($req->password!=null){
             $temp['password'] = bcrypt($req->password);
@@ -139,7 +126,7 @@ class UserController extends Controller
      */
     public function destroy($id)
     {
-        $user = $this->findUser($id);
+        $user = $this->loadUserWithTrash($id);
         if($user->avatar!=null){
             $img = $user->avatar;
             $path = public_path('upload/' . $img);
@@ -151,14 +138,12 @@ class UserController extends Controller
         
     }
     public function softDelete($id){
-        $user = $this->findUser($id);
-
+        $user = $this->loadUserWithTrash($id);
         $this->checkDataInTransaction($user,__FUNCTION__);
     }
     public function restore($id){
-        $user = $this->findUser($id);
+        $user = $this->loadUserWithTrash($id);
         $this->checkDataInTransaction($user,__FUNCTION__);
-
     }
 
     public function trainee(){

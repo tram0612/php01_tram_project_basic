@@ -18,7 +18,7 @@ class TaskController extends Controller
      */
     public function index($id)
     {
-        $subject = $this->loadSubjecWithTrash($id);
+        $subject = $this->loadSubjectWithTrash($id);
         return view('server.subject.task.index',compact('subject'));
     }
 
@@ -42,7 +42,7 @@ class TaskController extends Controller
     public function store(TaskRequest $req,$id)
     {
 
-        $subject = $this->loadSubjecWithTrash($id);
+        $subject = $this->loadSubjectWithTrash($id);
         $position = 0;
         if(!blank($subject->task()->get())){
             $position = $subject->task()->max('position');
