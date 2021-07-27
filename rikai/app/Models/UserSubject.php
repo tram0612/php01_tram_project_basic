@@ -4,30 +4,33 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class UserSubject extends Model
 {
+    use SoftDeletes;
     protected $table = 'user_subject';
     protected $primaryKey='id';
+    public $timestamps = true;
     protected $fillable = [
         'user_id',
-        'course_id',
-        'subject_id',
+        'course_subject_id',
         'status'
     ];
     public function user()
     {
         return $this->belongsTo(Task::class,'user_id');
     }
-    public function course()
+    
+    public function courseSubject()
     {
-        return $this->belongsTo(User::class,'course_id');
+        return $this->belongsTo(CourseSubject::class,'course_subject_id');
     }
-    public function subject()
+    public function scopeFindRelateddUserSubject($query,$courseId,$userId)
     {
-        return $this->belongsTo(Subject::class,'subject_id');
+        return $query->withTrashed()->where('user_id',$userId)->whereHas('courseSubject' , function ($query) use ($courseId){
+            $query->where('course_id',$courseId);
+        })->get();
     }
-    public static function findSubjectForUser($courseId,$userId){
-        return UserSubject::where('course_id',$courseId)->where('user_id',$userId)->with('subject')->get()->toArray();
-    }
+    
 }
